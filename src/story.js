@@ -1,3 +1,3 @@
 export default ({ onPlayBegins, say }) => {
-  onPlayBegins(() => say('test'))
+  onPlayBegins(() => say('test *test*'))
 }
