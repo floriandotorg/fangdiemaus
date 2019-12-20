@@ -8,7 +8,7 @@ export default (definition, print) => {
     const data = { }
 
     return {
-      hold(thing) {
+      holds(thing) {
         locations.set(thing, this)
       },
       take(thing) {
@@ -22,6 +22,9 @@ export default (definition, print) => {
           }
         }
         return l
+      },
+      isHolding(obj) {
+        return this.things().includes(obj)
       }
     }
   }
@@ -131,11 +134,13 @@ export default (definition, print) => {
     synonyms.forEach(synonym => actions[synonym.toLowerCase()] = action)
   }
 
-  const reference = (obj, ...names) => {
-    for (let name of names) {
-      nameMap[name.toLowerCase()] = obj
+  const reference = obj => ({
+    by(...names) {
+      for (let name of names) {
+        nameMap[name.toLowerCase()] = obj
+      }
     }
-  }
+  })
 
   const insteadOf = (name, callback) => {
     actions[name.toLowerCase()].callbacks.splice(actions[name.toLowerCase()].length - 1, 0, callback)
