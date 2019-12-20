@@ -1,26 +1,14 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { Provider } from 'react-redux'
+import store from './store'
+import parser from './parser'
+import story from './story'
+import { Terminal } from './terminal'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const parse = parser(story, text => store.dispatch({ type: 'ADD_TEXT', payload: { text } }))
 
-export default App;
+export const App = () => (
+  <Provider store={store}>
+    <Terminal parse={parse} />
+  </Provider>
+)
