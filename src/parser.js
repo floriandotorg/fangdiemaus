@@ -62,7 +62,7 @@ export default (definition, print) => {
     return {
       ...holder(),
       ...named(name, desc),
-      ConnectTo(otherRoom) {
+      connectTo(otherRoom) {
         this._addConnection(otherRoom)
         otherRoom._addConnection(this)
       },
