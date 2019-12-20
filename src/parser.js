@@ -114,15 +114,21 @@ export default (definition, print) => {
       callbacks: [callback],
       number_parameters,
       doIt(parameters) {
-        try {
-          for (let callback of this.callbacks) {
-            if (callback(...parameters)) {
-              break
+        if (parameters.length < number_parameters) {
+          print("Das ist mir zu wenig")
+        } else if (parameters.length > number_parameters) {
+          print("Das ist mir zu viel")
+        } else {
+          try {
+            for (let callback of this.callbacks) {
+              if (callback(...parameters)) {
+                break
+              }
             }
+          } catch (err) {
+            print("Mir ist da ein Fehler bei unterlaufen")
+            print(err)
           }
-        } catch (err) {
-          print("Mir ist da ein Fehler bei unterlaufen")
-          print(err)
         }
       }
     }
@@ -130,44 +136,74 @@ export default (definition, print) => {
 
   const reference = (obj, ...names) => {
     for (let name of names) {
-      nameMap[name] = obj
+      nameMap[name.toLowerCase()] = obj
     }
   }
 
   const insteadOf = (name, callback) => {
-    actions[name].callbacks.splice(actions[name].length - 1, 0, callback)
+    actions[name.toLowerCase()].callbacks.splice(actions[name.toLowerCase()].length - 1, 0, callback)
   }
 
-  const doAction = (name, parameters) => {
-    if (name in actions) {
-      actions[name].doIt(parameters)
+  const doAction = (action, parameters) => {
+    if (action !== null) {
+      action.doIt(parameters)
     } else {
-      print("Ich weiß nicht was ich machen soll")
+      print("🤷‍♂️ Ich weiß nicht was ich machen soll 🤷‍♀️")
     }
   }
 
   definition({ room, container, thing, say: print, action, reference, insteadOf })
 
-  print("<!---")
-  dbg(nameMap["Küche"])
-  dbg(nameMap["Wohnzimmer"])
-  print("---/>")
+  return (input) => {
+    input = input.toLowerCase()
+    let verbIdx = -1
+    let action = null
+    for (const actionName in actions) {
+      if (actions.hasOwnProperty(actionName)) {
+        verbIdx = input.indexOf(actionName)
+        if (verbIdx >= 0) {
+          action = actions[actionName]
+          break
+        }
+      }
+    }
+    const objects = []
+    for (const name in nameMap) {
+      if (nameMap.hasOwnProperty(name)) {
+        const element = nameMap[name]
+        const start = input.indexOf(name)
+        if (start >= 0) {
+          objects.push({ start, end: start + name.length, name, element })
+        }
+      }
+    }
 
-  doAction("nehmen", [ nameMap["Maus"] ])
+    const parameters = []
 
-  print("<!---")
-  dbg(nameMap["Küche"])
-  dbg(nameMap["Wohnzimmer"])
-  print("---/>")
+    // Find the most specific
+    // Check each combination
+    for (const objectA of objects) {
+      const hasMoreSpecific = false
+      for (const objectB of objects) {
+        if (objectA !== objectB && objectA.start >= objectB.start && objectA.end <= objectB.end) {
+          if (objectA.name.length < objectB.name.length) {
+            hasMoreSpecific = true
+          }
+        }
+      }
+      if (!hasMoreSpecific) {
+        parameters.push(objectA.element)
+      }
+    }
 
-  doAction("nehmen", [ nameMap["Maus"] ])
+    console.log(action)
+    console.log(verbIdx)
+    console.log(objects)
 
-  print("<!---")
-  dbg(nameMap["Küche"])
-  dbg(nameMap["Wohnzimmer"])
-  print("---/>")
+    //const parameters = objects.map(e => e.element)
 
-  return () => {
-    print('test')
+    console.log(parameters)
+
+    doAction(action, parameters)
   }
 }
