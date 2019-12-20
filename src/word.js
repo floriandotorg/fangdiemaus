@@ -67,8 +67,33 @@ export default (word, gender, { adjective, noArticle, definiteArticle: isDefinit
     },
   }
 
-  const withArticle = (grammaticalCase, article, plural) => {
+  const contractions = {
+    'an dem': 'am',
+    'in dem': 'im',
+    'bei dem': 'beim',
+    'zu dem': 'zum',
+    'hinter dem': 'hinterm',
+    'in das': 'ins',
+    'unter das': 'unters',
+    'von dem': 'vom',
+    'vor dem': 'vorm',
+    'zu der': 'zur'
+  }
+
+  const contract = (text) => {
+    for (const contraction in contractions) {
+      text = text.replace(contraction, contractions[contraction])
+    }
+
+    return text
+  }
+
+  const inflect = (grammaticalCase, article, plural, preposition) => {
     const result = []
+
+    if (preposition) {
+      result.push(preposition)
+    }
 
     if (article !== 'noArticle') {
       if (plural) {
@@ -92,20 +117,20 @@ export default (word, gender, { adjective, noArticle, definiteArticle: isDefinit
       result.push(`${word}${(grammaticalCase === 'genitive' && gender !== 1) ? 's' : ''}`)
     }
 
-    return result.join(' ')
+    return contract(result.join(' '))
   }
 
   return {
     toString() {
       return word
     },
-    withArticle({ grammaticalCase = 'nominative', plural = false } = {}) {
+    inflect({ grammaticalCase = 'nominative', plural = false, preposition } = {}) {
       if (isDefiniteArticle) {
-        return withArticle(grammaticalCase, 'definiteArticle', plural)
+        return inflect(grammaticalCase, 'definiteArticle', plural, preposition)
       } else if (noArticle) {
-        return withArticle(grammaticalCase, 'noArticle', plural)
+        return inflect(grammaticalCase, 'noArticle', plural, preposition)
       } else {
-        return withArticle(grammaticalCase, 'indefiniteArticle', plural)
+        return inflect(grammaticalCase, 'indefiniteArticle', plural, preposition)
       }
     }
   }
