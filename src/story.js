@@ -1,8 +1,20 @@
 import word from './word'
 
 export default ({ room, container, thing, say, action, reference, insteadOf }) => {
+  const player = container(word('Player', 'm', { definiteArticle: true }))
+  player.is('player')
+
+  action('nehmen', 1, ['nimm', 'nehme'], (obj) => {
+    if (obj.get('moveable')) {
+      player.hold(obj)
+      say(`Du hast ${obj.name().inflect({ grammaticalCase: 'accusative' })} genommen.`)
+    } else {
+      say('Das kannst du nicht nehmen.')
+    }
+  })
+
   // Küche
-  const kitchen = room(word('Küche', 'f', { definiteArticle: true }), 'Eine alte, gammelige Küche')
+  const kitchen = room(word('Küche', 'f', { definiteArticle: true }))
   reference(kitchen, 'Küche')
 
   const fridge = container(word('Kühlschrank', 'm'))
@@ -21,7 +33,9 @@ export default ({ room, container, thing, say, action, reference, insteadOf }) =
   reference(tv, 'Fernseher', 'Fernsehr', 'TV')
   living_room.hold(tv)
 
-  const patioDoor = thing(word('Terassentür', 'f', { definiteArticle: true }), 'Eine alte Glastür, die keinen Einbrechner standhalten würde.')
+  const patioDoor = thing(word('Terassentür', 'f', { definiteArticle: true }))
+  patioDoor.has('description', 'Eine alte Glastür, die keinen Einbrechner standhalten würde.')
+  patioDoor.is('openable')
   reference(patioDoor, 'Terassentür', 'Tür')
   living_room.hold(patioDoor)
 
@@ -37,7 +51,8 @@ export default ({ room, container, thing, say, action, reference, insteadOf }) =
   const bathroom = room(word('Badezimmer', 'm', { definiteArticle: true }))
   reference(bathroom, 'Bad', 'Badezimmer', 'Toilette')
 
-  const poison = container(word('Rattengift', 'n', { noArticle: true }), 'Eine Packung voller Rattengift')
+  const poison = container(word('Rattengift', 'n', { noArticle: true }))
+  poison.has('description', 'Eine Packung voller Rattengift')
   reference(poison, 'Rattengift', 'Gift')
   bathroom.hold(poison)
 
@@ -67,6 +82,7 @@ export default ({ room, container, thing, say, action, reference, insteadOf }) =
   // Maus
   const mouse = thing(word('Maus', 'f', { definiteArticle: true }), 'Die böse Maus', true)
   reference(mouse, 'Maus', 'Ratte')
+  mouse.is('moveable')
   kitchen_table.hold(mouse)
 
   // Schokolade
@@ -85,9 +101,4 @@ export default ({ room, container, thing, say, action, reference, insteadOf }) =
   //   return false
   // })
 
-
-    // action('nehmen', 1, (obj) => {
-  //   say('Nimm 'obj')
-  //   say(obj.isMovable())
-  // })
 }

@@ -1,22 +1,6 @@
 export default (definition, print) => {
-  const fs = []
-
-  const dbg = (obj) => {
-    const int_dbg = (o, s) => {
-      console.log(`${s}${o.name()} (${o.desc()})`)
-      if (o.things !== undefined) {
-        let ns = s + "  "
-        for (let u of o.things()) {
-          int_dbg(u, ns)
-        }
-      }
-    }
-    int_dbg(obj, "")
-  }
-
   const locations = new Map()
   const actions = {}
-  const specialActions = {}
 
   const nameMap = {}
 
@@ -42,26 +26,42 @@ export default (definition, print) => {
     }
   }
 
-  const named = (name, desc) => {
-
-    const data = { name, desc }
+  const hadProperties = () => {
+    const properties = {}
 
     return {
-      name() {
-        return data.name
+      has(name, value) {
+        properties[name] = value
       },
-      desc() {
-        return data.desc
+      is(name) {
+        this.has(name, true)
       },
+      isNot(name) {
+        this.has(name, false)
+      },
+      get(name) {
+        return properties[name]
+      }
     }
   }
 
-  const room = (name, desc) => {
+  const named = (name) => {
+    const data = { name }
+
+    return {
+      ...hadProperties(),
+      name() {
+        return data.name
+      }
+    }
+  }
+
+  const room = (name) => {
     const data = { connections: [] }
 
     return {
       ...holder(),
-      ...named(name, desc),
+      ...named(name),
       connectTo(otherRoom) {
         this._addConnection(otherRoom)
         otherRoom._addConnection(this)
@@ -72,13 +72,11 @@ export default (definition, print) => {
     }
   }
 
-  const thing = (name, desc, {movable = false} = {}) => {
-    const data = { movable }
-
+  const thing = (name) => {
     locations.set(this, null)
 
     return {
-      ...named(name, desc),
+      ...named(name),
       setLocation(loc) {
         locations.set(this, loc)
       },
@@ -94,23 +92,19 @@ export default (definition, print) => {
         } else {
           return false
         }
-      },
-      isMovable() {
-        return data.movable
       }
     }
   }
 
-  const container = (name, desc) => {
-
+  const container = (name) => {
     return {
       ...holder(),
-      ...thing(name, desc),
+      ...thing(name),
     }
   }
 
-  const action = (name, number_parameters, callback) => {
-    actions[name] = {
+  const action = (name, number_parameters, synonyms, callback) => {
+    const action = {
       callbacks: [callback],
       number_parameters,
       doIt(parameters) {
@@ -127,11 +121,14 @@ export default (definition, print) => {
             }
           } catch (err) {
             print("Mir ist da ein Fehler bei unterlaufen")
-            print(err)
+            console.error(err)
           }
         }
       }
     }
+
+    actions[name.toLowerCase()] = action
+    synonyms.forEach(synonym => actions[synonym.toLowerCase()] = action)
   }
 
   const reference = (obj, ...names) => {
